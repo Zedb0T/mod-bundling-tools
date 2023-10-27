@@ -3,6 +3,7 @@ import shutil
 import requests
 import urllib.request
 import zipfile
+import datetime
 
 args = {
     "outputDir": os.getenv("outputDir"),
@@ -89,6 +90,27 @@ if args["toolingBinaryDir"] != "":
       )
 
 # Copy-in Mod Assets
+
+#Add version, and date bundled to mod-bundle
+try:
+        with open(os.path.join(args["outputDir"], "windows", "data", "goal_src", "jak1", "engine", "mods", "mod-settings.gc"), 'r') as file:
+            file_data = file.read()
+
+        # Check if the placeholder string is present in the file
+        if "%MODVERPLACEHOLDER%" in file_data:
+            # Replace the palceholder string with the version and date string
+            file_data = file_data.replace("%MODVERPLACEHOLDER%", args["versionName"] + datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"))
+
+            # Write the updated content back to the mod-settings
+            with open(os.path.join(args["outputDir"], "windows", "data", "goal_src", "jak1", "engine", "mods", "mod-settings.gc"), 'r', 'w') as file:
+                file.write(file_data)
+            print(f"String %MODVERPLACEHOLDER% replaced with '{args['versionName'] + datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')}' in the file.")
+        else:
+            print(f"String %MODVERPLACEHOLDER% not found in the file.")
+
+except FileNotFoundError:
+    print("File not found.")
+
 textureReplacementDir = args["textureReplacementDir"]
 if os.path.exists(textureReplacementDir):
     shutil.copytree(
